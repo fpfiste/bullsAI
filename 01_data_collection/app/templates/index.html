@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Remote Camera</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href='/static/css/styles.css' />
+
+    <script type="application/javascript" src="/static/js/target_sampler.js"></script>
+    <script type="application/javascript" src="/static/js/labeler.js"></script>
+  </head>
+  <body>
+
+  <div class="content">
+      <div class="row">Title</div>
+      <div class="row">
+        <div class="thumbnails-container"></div>
+          <div class="stream-container" style="position:relative;">
+            <img src="{{ url_for('video_feed') }}" class="stream-frame">
+            <div id="loading_overlay" style="position:absolute; top:0; left:0; right:0; bottom:0;">
+
+            </div>
+          </div>
+
+          <div id="controls-container">
+            <div id="camera-control">
+              <div id="controls">
+                <ul style="list-style:None;">
+                  <li>
+                    <div class="mb-3 mt-3">
+                      <button type="button" id="capture" class="btn btn-light"><img src="/static/control_icons/camera.svg" class="camera-control-button"></button>
+                      <label for="capture" class="form-label">Capture</label>
+                  </div>
+                  </li>
+                  <li>
+                    <div class="mb-3">    
+                      <button type="button" id="delete" class="btn btn-light"><img src="/static/control_icons/trash.svg" class="camera-control-button"></button>
+                      <label for="delete" class="form-label">Delete</label>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="mb-3 mt-3">
+                      <input type="range" class="form-range" min="0" max="1" step="0.01" value="0" id="zoom-range">
+                      <label for="zoom-range" class="form-label" >Zoom</label>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="mb-3 mt-3">
+                      <input type="range" class="form-range" min="0" max="100" step="0.01" value="0" id="beta-range">
+                      <label for="beta-range" class="form-label" >Brightness</label>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="mb-3 mt-3">
+                      <input type="range" class="form-range" min="1" max="3" step="0.01" value="1" id="alpha-range">
+                      <label for="alpha-range" class="form-label" >Contrast</label>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="mb-3">
+                      <button type="button" id="upload" class="btn btn-light"><img src="/static/control_icons/download.svg" class="camera-control-button"></button>
+                      <label for="upload" class="form-label">Cloud Sync</label>
+                    </div>
+                  </li>
+
+                </ul>
+               
+
+
+
+
+
+
+
+
+              
+
+              </div>
+
+            </div>
+            <div id="action-field" class="row" style="position:relative; width:20vw; height: 40vh;">
+    
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+
+
+
+
+  
+  
+  
+   
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script>
+      function target_generator() {
+
+        $('#target-sampler').empty()
+        let parent_width = $('#target-sampler').width()
+        let parent_height = $('#target-sampler').height()
+        let canvas_dim = Math.min(parent_width, parent_height)
+        let margin_top = parent_height - canvas_dim
+        console.log('Width: ' + parent_width + ' Height: ' + parent_height + ' Canvas Dim: '+ canvas_dim)
+        let canvas_html = '<canvas id="target-canvas" width='+canvas_dim+' height='+canvas_dim+' style="margin-top:'+margin_top+'px"></canvas>'
+        $('#target-sampler').append(canvas_html)
+
+        let dartboard_image_html = '<img id="target-board" src="/static/dartboard.jpg">'
+        $('#controls-container').append(dartboard_image_html)
+        
+        let canvas = document.getElementById('target-canvas').getContext("2d")
+
+        $('#target-canvas').height(canvas.canvas.width)
+
+        let image = document.getElementById('target-board')
+
+
+
+        image.addEventListener("load", (e) => {
+          
+          canvas.drawImage(image, 0, 0, canvas.canvas.width, canvas.canvas.width);
+          $('#target-board').remove()
+
+          
+          let x_coor = 0
+          let y_coor = 0
+
+          // get max distance
+          var max_x_dist = Math.abs(x_coor - (canvas.canvas.width / 2))
+          var max_y_dist = y_coor
+          var max_distance = Math.sqrt( max_x_dist*max_x_dist + max_y_dist*max_y_dist );
+
+          let actual_distance = max_distance + 1
+
+
+          while ( actual_distance >= max_distance) {
+            x_coor = Math.floor(Math.random() * (canvas.canvas.width - 0 + 1) );
+            y_coor = Math.floor(Math.random() * (canvas.canvas.height - 0 + 1) );
+            
+            
+            // get actual distance
+            let actual_x_dist = Math.abs(x_coor - (canvas.canvas.width / 2))
+            let actual_y_dist = Math.abs(y_coor - (canvas.canvas.height / 2))
+            actual_distance = Math.sqrt( actual_x_dist*actual_x_dist + actual_y_dist*actual_y_dist );
+          } 
+
+        canvas.fillStyle = "lightblue";
+        canvas.beginPath();
+        canvas.arc(x_coor,y_coor,15,0,2*Math.PI);
+        canvas.fill();
+
+        });
+
+        $('#target-board').remove()
+
+ 
+
+      }
+
+      function thumbnails_build() {
+        $('.thumbnails-list').remove();
+        $.get('list_images', {}, function(result){
+            $('.thumbnails-container').append('<ul class="thumbnails-list"></ul>')
+            $('.thumbnails-list').append('<li class="thumbnail-element thumbnail-element-stream "><div id="stream_thumbnail" class="thumbnail thumbnail_active"><img src="/static/control_icons/camera.svg" class="stream_thumbnail"></div></li>')
+            $.each(result.data, (index, item) => {
+              $('.thumbnails-list').append('<li class="thumbnail-element"><img src="'+ item +'" class="thumbnail"></li>')
+            })
+
+
+          $('.thumbnail-element').on( "click", function() {
+
+            $('.thumbnail').removeClass('thumbnail_active')
+            $(this).find('.thumbnail').addClass('thumbnail_active')
+            url = $(this).find('img').attr('src')
+            console.log(url)
+            if (url == '/static/control_icons/camera.svg') {
+              console.log('sampler')
+              url = '/video_feed';
+              sampler.build();
+
+            } else {
+              labeler.build();
+
+            }
+              
+
+              $('.stream-frame').attr('src', url);
+          });
+      })
+      }
+
+
+    $(document).ready(function(){
+      const capture_url = window.location.origin + '/capture'
+      const zoom_in_url = window.location.origin + '/zoom_in'
+      const zoom_url = window.location.origin + '/zoom'
+      const beta_url = window.location.origin + '/beta'
+      const alpha_url = window.location.origin + '/alpha'
+
+
+
+      sampler = new TargetSampler('#action-field')
+      
+     
+      thumbnails_build();
+
+      
+      sampler.build();
+      
+      
+
+      $("#capture").on("click", function(){
+        $.post(capture_url, {}, function(result){
+          location.reload();
+        })
+      });
+
+      $("#zoom_in").on("click", function(){
+        $.post(zoom_in_url, {}, function(result){
+           console.log(result.zoom)
+        })
+      });
+      $("#zoom-range").on("change", function(){
+        console.log($(this).val())
+        let zoom_val = $(this).val()
+        $.post(zoom_url, {"zoom": zoom_val}, function(result){
+           console.log(result.zoom)
+        })
+      });
+
+      $("#beta-range").on("change", function(){
+        console.log($(this).val())
+        let val = $(this).val()
+        $.post(beta_url, {"beta": val}, function(result){
+           console.log(result.beta)
+        })
+      });
+
+      $("#alpha-range").on("change", function(){
+        console.log($(this).val())
+        let val = $(this).val()
+        $.post(alpha_url, {"alpha": val}, function(result){
+           console.log(result.alpha)
+        })
+      });
+
+      $("#delete").on("click", function(){
+        let img = $('.stream-frame').attr('src');
+        let url = '/delete'
+        console.log(img)
+        $.post(url, {'img':img}, function(result){
+          location.reload()
+        })
+      });
+
+      $("#upload").on("click", function(){
+        let url = '/sync'
+        console.log('here')
+        $.post(url, {}, function(result){
+
+          alert('Sync complete')
+          location.reload()
+
+        })
+      });
+
+      $(document).on('keydown',function(e) {
+        console.log(e.keyCode)
+        if(e.keyCode == 13) {
+          $.post(capture_url, {}, function(result){
+            location.reload();
+          })
+        } else if (e.keyCode == 46) {
+          let img = $('.stream-frame').attr('src');
+          let url = '/delete'
+          console.log(img)
+          $.post(url, {'img':img}, function(result){
+            location.reload()
+          })   
+        } else if (e.keyCode == 40) {
+          let active_idx = $('.thumbnail_active').parent().index()
+          $('.thumbnail').removeClass('thumbnail_active')
+
+          active_idx += 1 
+
+          let new_src = $('.thumbnail-element').eq(active_idx).find('img').attr('src')
+
+              
+
+          $('.stream-frame').attr('src', new_src);
+          $('.thumbnail-element').eq(active_idx).find('.thumbnail').addClass('thumbnail_active')
+          console.log(element)
+        } else if (e.keyCode == 38) {
+          let active_idx = $('.thumbnail_active').parent().index()
+          $('.thumbnail').removeClass('thumbnail_active')
+
+          active_idx -= 1 
+
+          let new_src = $('.thumbnail-element').eq(active_idx).find('img').attr('src')
+
+              
+
+          $('.stream-frame').attr('src', new_src);
+          $('.thumbnail-element').eq(active_idx).find('.thumbnail').addClass('thumbnail_active')
+          console.log(element)
+
+
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

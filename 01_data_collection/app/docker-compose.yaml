@@ -1,0 +1,21 @@
+version: "3"
+services:
+  web:
+    build: .
+    environment:
+        - BLOB_ACCOUNT=${BLOB_ACCOUNT}
+        - BLOB_KEY=${BLOB_KEY}
+        - LD_LIBRARY_PATH:/opt/vc/lib
+    ports:
+      - "2204:2204"
+      - "5000:5000"
+      - "7007:7007"
+    volumes:
+      - .:/files
+      - ../images:/images
+      - /opt/vc:/opt/vc
+    devices:
+      - "/dev/video0:/dev/video0"
+      - "/dev/vchiq:/dev/vchiq"  
+    privileged: true
+    restart: always

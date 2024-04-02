@@ -53,8 +53,9 @@ def zoom():
 
 @app.route('/capture', methods=['POST'])
 def capture():
-    path = os.path.join(image_path, str(dt.datetime.now()) + '.jpg')
-    cam.capture(image_path)
+    score = request.form.get('score')
+    path = os.path.join(image_path, str(dt.datetime.now()) +'_'+ score+ '.jpg')
+    cam.capture(image_path, score)
     return  jsonify({'data': path})
 
 

@@ -64,7 +64,7 @@ class Camera():
 
 
 
-    def capture(self, path):
+    def capture(self, path, score):
         
         self.cam.switch_mode(self.capture_config)
         self.cam.set_controls({"ScalerCrop": self.scaler_crop})
@@ -74,7 +74,7 @@ class Camera():
         self.cam.switch_mode(self.stream_config)
         self.cam.set_controls({"ScalerCrop": self.scaler_crop})
 
-        file = f"{frame.shape[0]}x{frame.shape[1]}_{str(dt.datetime.now())}.jpg"
+        file = f"{str(dt.datetime.now())}_{frame.shape[0]}x{frame.shape[1]}_{score}.jpg"
         path = os.path.join(path, file)
         out = cv2.imwrite(path, frame)
 
